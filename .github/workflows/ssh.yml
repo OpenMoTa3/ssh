@@ -5,8 +5,8 @@ on:
 
 jobs:
   ssh:
-    runs-on: ubuntu-latest        # 最新镜像
-    timeout-minutes: 360          # 最高工作时间（GitHub 上限 360）
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
 
     steps:
       - name: Checkout (optional)
@@ -16,7 +16,7 @@ jobs:
       - name: Restore cache
         uses: actions/cache@v4
         with:
-          path: ~
+          path: $HOME
           key: ssh-home-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             ssh-home-${{ github.ref_name }}-
@@ -26,16 +26,16 @@ jobs:
       - name: Install sshx
         run: curl -sSf https://sshx.io/get | sh
 
-      # ========== 3) 启动 sshx（比 job 超时短 1 分钟，自动退出） ==========
+      # ========== 3) 启动 sshx（比 job 超时短 1 分钟） ==========
       - name: Start sshx (auto-exit 1 min before job timeout)
         run: timeout 359m sshx --name gh-runner || true
 
-      # ========== 4) 保存缓存（sshx 正常返回后执行） ==========
+      # ========== 4) 保存缓存 ==========
       - name: Save cache
         if: always()
         uses: actions/cache@v4
         with:
-          path: ~
+          path: $HOME
           key: ssh-home-${{ github.ref_name }}-${{ github.run_id }}-save
           restore-keys: |
             ssh-home-${{ github.ref_name }}-
