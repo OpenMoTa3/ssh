@@ -1,24 +1,18 @@
 name: SSH into Runner
+
 on:
   workflow_dispatch:
+
 jobs:
   ssh:
     runs-on: ubuntu-22.04
+    timeout-minutes: 60
     steps:
-      - name: Setup key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-      - name: Start sshd + reverse tunnel
-        run: |
-          sudo apt-get install -y openssh-server >/dev/null 2>&1 || true
-          sudo mkdir -p /run/sshd
-          echo "runner:$(openssl rand -hex 8)" | sudo chpasswd
-          sudo /usr/sbin/sshd -p 22 || true
-          ssh -N -R 0.0.0.0:2222:localhost:22 \
-            -o ServerAliveInterval=30 -o ExitOnForwardFailure=yes \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} &
-          sleep 3600
-        timeout-minutes: 30
+      - name: Checkout (optional)
+        uses: actions/checkout@v4
+
+      - name: Install sshx
+        run: curl -sSf https://sshx.io/get | sh
+
+      - name: Start sshx
+        run: sshx --name gh-runner
