@@ -5,8 +5,8 @@ on:
 
 jobs:
   ssh:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    runs-on: ubuntu-26.04
+    timeout-minutes: 999
     steps:
       - name: Checkout (optional)
         uses: actions/checkout@v4
