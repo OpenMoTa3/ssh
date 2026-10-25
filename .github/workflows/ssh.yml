@@ -1,0 +1,11 @@
+name: SSH into Runner
+
+on: [workflow_dispatch]
+
+jobs:
+  ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 30
