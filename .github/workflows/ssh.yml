@@ -1,14 +1,24 @@
 name: SSH into Runner
-
 on:
-  workflow_dispatch:        # 只能手动触发,不要用 push/PR
-
+  workflow_dispatch:
 jobs:
   ssh:
-    runs-on: ubuntu-22.04   # 关键:别用 ubuntu-latest(现在指向 26.04 预览版)
+    runs-on: ubuntu-22.04
     steps:
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: false   # 只允许触发者连接
+      - name: Setup key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+      - name: Start sshd + reverse tunnel
+        run: |
+          sudo apt-get install -y openssh-server >/dev/null 2>&1 || true
+          sudo mkdir -p /run/sshd
+          echo "runner:$(openssl rand -hex 8)" | sudo chpasswd
+          sudo /usr/sbin/sshd -p 22 || true
+          ssh -N -R 0.0.0.0:2222:localhost:22 \
+            -o ServerAliveInterval=30 -o ExitOnForwardFailure=yes \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} &
+          sleep 3600
         timeout-minutes: 30
