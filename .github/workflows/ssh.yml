@@ -1,8 +1,11 @@
 jobs:
   ssh:
-    runs-on: ubuntu-22.04        # ← 关键
+    runs-on: ubuntu-latest
     steps:
-      - uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
+      - name: Install & run sshx (无需 apt)
+        run: |
+          curl -sSf https://sshx.io/get | sh
+          sshx --name "gh-runner" &
+          sleep 5
+          cat ~/.sshx 2>/dev/null || true
         timeout-minutes: 30
